@@ -1,0 +1,200 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+
+
+// we define our memory size based on the lc-3 model , this can store a total of 128KB, 65,536 memory locations (2^16)
+// each location stored 16 bits = 2 bytes 
+#define MEMORY_MAX (1 << 16)
+// we will story this memory in an unsigned 16 bit integer array , because memory addresses are naturally unsigned there are no negative mem addresses
+uint16_t memory[MEMORY_MAX];
+
+
+// The LC-3 has 10 total registers , each of which is 16 bits, 8 general-purpose registers (R0-R7) to perform any program calculation
+// R_PC Program counter register , an unsigned integer which is the address of the next instruction in memeory to execute
+// Condition flag register tells us information about previouse calculation
+
+enum{
+    R_R0 = 0,
+    R_R1,
+    R_R2,
+    R_R2,
+    R_R3,
+    R_R4,
+    R_R5,
+    R_R6,
+    R_R7,
+    R_PC, // Prog counter
+    R_COND,
+    R_COUNT
+};
+
+
+// we will store our registers in an array just like the memory
+uint16_t reg[R_COUNT];
+
+// Condition flags , they provide information about the most recently executed calculation, the lc-3 only has 3 condition flags
+enum{
+    FL_POS = 1 << 0, // P
+    FL_ZRO = 1 << 1, // Z
+    FL_NEG = 1 << 2, // N
+};
+
+
+
+// Instruction set, has Opcode: indicates the kind of task to perform and parameters which provide input to the task being performed
+// Only 16 opcodes in the lc-3 architecture. each instruction is 16 bits with the left 4 bits storing the op code . The rest save the parameters
+
+enum{
+    OP_BR = 0, // Branch
+    OP_ADD, //add  1 = 0001
+    OP_LD, // load
+    OP_ST, //store
+    OP_JSR, // jump register
+    OP_AND, //bitwise AND
+    OP_LDR, // load register
+    OP_STR, // store register
+    OP_RTI, // unused
+    OP_NOT, // bitwise NOT
+    OP_LDI, // load indirect
+    OP_STI, // store indirect
+    OP_JMP, // jump
+    OP_RES, // reserved (unused)
+    OP_LEA, // load effective addresss
+    OP_TRAP // execute trap
+};
+
+uint16_t sing_extend(uint16_t x, int bit_count){
+    // we check if the LMB is 1 ( meaning if the number is negative) eg/ 5 bit num: x = 0b11010 -6 
+    // bit_count = 5 -1 = 4
+    // x >> 4 = 0b00001 and & 1 = 1 
+    if((x >> (bit_count -1)) & 1){
+        x |= (0xFFFF << bit_count); // 1111 1111 1111 1111 << 4 is : 1111 1111 1110 0000 x = 0000 0001 1010
+        // result = 1111 1111 1111 1010 -6 in 16-bit
+    }
+    // for positive nums it alr gets filled with zeros 
+
+    return x; 
+}
+
+void update_flag(uint16_t r){
+    if(reg[r] == 0){
+        reg[R_COND] = FL_ZRO;
+    }
+    else if(reg[r] >> 15){ // if the left most bit is 1 then it is negative
+        reg[R_COND] = FL_NEG;
+
+    }
+    else{
+        reg[R_COND] = FL_POS;
+    }
+}
+
+int main(int argc, const char *argv[]){
+
+    if(argc < 2){
+        // show usage string
+        printf("lc3 [image-file1]...\n");
+        exit(2); // code 2 is misue of shell comms (invalid or missing args, etc.)
+    }
+
+    for(int j = 1; j < argc; ++j){
+        if(!read_image(argv[j])){ // argv is an array of string pointers
+            printf("Failed to load image: %s\n", argv[j]);
+            exit(1);
+        }
+    }
+
+
+    // only one condtion flag should be up at a time so we set the Zro flag
+    reg[R_COND] = FL_ZRO;
+
+    enum{ PC_START = 0x3000}; // the memory location where the pc will start and have it to the counter register
+    reg[R_PC] = PC_START;
+
+    int running = 1;
+    while(running){
+        // step 1: fetch the instruction from memory at the address of the pc register
+        uint16_t instr = mem_read(reg[PC_START]++); 
+        // get the top 4 bits for the type of instr
+        uint16_t op = instr >> 12;
+
+        switch(op){
+            case OP_ADD:
+                // destination register DR (bits 11-9)
+                uint16_t r0 = (instr >> 9) & 0x7; // result: r0 = 000
+                // bits (8-6) we move to 2:0 and mask it out with 0x7 which is 111 in binary
+                uint16_t r1 = (instr >> 6) & 0x7; // result: r1 = 001
+
+                uint16_t imm_flag = (instr >> 5) & 0x1; // we check to see if bit 5 is 0 or 1
+
+                if(imm_flag){
+                    uint16_t last_five = (instr & 0x1F);
+                    uint16_t imm5 = sing_extend(last_five, 5); // we mask only the last 5 bits
+                    reg[r0] = reg[r1] + imm5;
+                }
+                else{
+                    // bits 2-0
+                    uint16_t r2 = (instr & 0x7);  // only mask out last three bits 
+                    reg[r0] = reg[r1] + reg[r2];
+                }
+                
+                update_flag(r0);
+
+
+                break;
+            case OP_AND:
+                // add
+                break;
+            case OP_BR:
+                // add
+                break;
+            case OP_JMP:
+                // add
+                break;
+            case OP_JSR:
+                // add
+                break;
+            case OP_LD:
+                // add
+                break;
+            case OP_LDI:
+                // add
+                break;
+            case OP_LDR:
+                // add
+                break;
+            case OP_LEA:
+                // add
+                break;
+            case OP_NOT:
+                // add
+                break;
+            case OP_ST:
+                // add
+                break;
+            case OP_STI:
+                // add
+                break;
+            case OP_STR:
+                // add
+                break;
+            case OP_TRAP:
+                // add
+                break;
+            case OP_RTI:
+            case OP_RES:
+            default:
+                // bad opcode
+                break;
+            
+        }
+
+    }
+
+
+
+
+
+    return 0;
+}
