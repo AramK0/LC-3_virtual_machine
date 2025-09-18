@@ -56,7 +56,7 @@ enum{
     OP_STR, // store register
     OP_RTI, // unused
     OP_NOT, // bitwise NOT
-    OP_LDI, // load indirect
+    OP_LDI, // load indirect 1010 = 10
     OP_STI, // store indirect
     OP_JMP, // jump
     OP_RES, // reserved (unused)
@@ -144,7 +144,21 @@ int main(int argc, const char *argv[]){
 
                 break;
             case OP_AND:
-                // add
+                uint16_t r0 = (instr >> 9) & 0x7;
+                uint16_t r1 = (instr >> 6) & 0x7;
+                
+                if(imm_flag){
+                    uint16_t imm5 = sing_extend(instr & 0x1F, 5);
+                    reg[r0] = reg[r1] * imm5;
+                }
+                else{
+                    uint16_t r2 = (instr & 0x7);
+                    reg[r0] = reg[r1] * reg[r2];
+                }
+
+                update_flag(r0);
+
+
                 break;
             case OP_BR:
                 // add
@@ -159,7 +173,20 @@ int main(int argc, const char *argv[]){
                 // add
                 break;
             case OP_LDI:
-                // add
+                // desination register
+                uint16_t r0 = (instr >> 9) & 0x7;
+                // Program-Counter offset 9 pcoffset is a signed offset value that tells the cpu how far forward or backward to move in memory
+                // the CPU takes the current program-counter PC, adds the PCoffset , and the result is the target memory address
+                // Target address = PC + PCoffset
+                uint16_t pc_offset = sing_extend(instr & 0x1FF, 9); // mask out first 9-bits: see LDI instr
+
+                // add pc_offset to the current PC, look at mem location to get the final address
+                reg[r0] = mem_read(mem_read(reg[R_PC]) + pc_offset);
+                update_flag(r0);
+
+
+
+
                 break;
             case OP_LDR:
                 // add
