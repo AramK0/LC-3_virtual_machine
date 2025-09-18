@@ -90,6 +90,10 @@ void update_flag(uint16_t r){
     }
 }
 
+int negate(uint16_t r){
+
+}
+
 int main(int argc, const char *argv[]){
 
     if(argc < 2){
@@ -122,6 +126,7 @@ int main(int argc, const char *argv[]){
         switch(op){
             case OP_ADD:
                 // destination register DR (bits 11-9)
+                // we get the INDEX to register 0
                 uint16_t r0 = (instr >> 9) & 0x7; // result: r0 = 000
                 // bits (8-6) we move to 2:0 and mask it out with 0x7 which is 111 in binary
                 uint16_t r1 = (instr >> 6) & 0x7; // result: r1 = 001
@@ -195,7 +200,14 @@ int main(int argc, const char *argv[]){
                 // add
                 break;
             case OP_NOT:
-                // add
+                    
+                uint16_t r0 = (instr >> 9) & 0x7;
+                uint16_t r1 = (instr >> 6) & 0x7;
+
+                reg[r0] = ~reg[r1];
+
+                update_flag(r0);
+
                 break;
             case OP_ST:
                 // add
