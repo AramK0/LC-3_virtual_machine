@@ -18,20 +18,19 @@ enum{
     R_R0 = 0,
     R_R1,
     R_R2,
-    R_R2,
     R_R3,
     R_R4,
     R_R5,
     R_R6,
     R_R7,
-    R_PC, // Prog counter
+    R_PC, /* program counter */
     R_COND,
     R_COUNT
 };
 
 
 // we will store our registers in an array just like the memory
-uint16_t reg[R_COUNT];
+uint16_t reg[R_COUNT]; // reg[10]
 
 // Condition flags , they provide information about the most recently executed calculation, the lc-3 only has 3 condition flags
 enum{
@@ -175,13 +174,33 @@ int main(int argc, const char *argv[]){
                 }
 
 
-
                 break;
             case OP_JMP:
-                // add
+
+                uint16_t r1 = (instr >> 6) & 0x7;
+                reg[R_PC] = reg[r1];    // Also does RET when the reg is r7 as r7 is used for return addresses so we return to where we came from
+
+
                 break;
             case OP_JSR:
-                // add
+                
+                // its basically two options of jumpting to a function(subroutine) address by either jumping to the register 
+                // address of a function or jumpting to that function address directly
+                reg[R_R7] = reg[R_PC]; // we save the return address in reg7 to return to after the subroutine(function)
+                uint16_t bit_el = (instr >> 11) & 0x1;
+                
+
+                if(bit_el == 0){
+                    uint16_t r1 = (instr >> 6) & 0x7;
+                    reg[R_PC] = reg[r1]; //JSRR jump to subroutine register 
+                }
+                else{
+                    uint16_t pc_offset = (instr & 0x7FF);
+                    reg[R_PC] += sing_extend(pc_offset, 11); // JSR Jump To Sobroutine 
+                }
+
+
+
                 break;
             case OP_LD:
                 // add
