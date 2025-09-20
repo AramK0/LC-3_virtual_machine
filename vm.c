@@ -35,9 +35,9 @@ uint16_t reg[R_COUNT];
 
 // Condition flags , they provide information about the most recently executed calculation, the lc-3 only has 3 condition flags
 enum{
-    FL_POS = 1 << 0, // P
-    FL_ZRO = 1 << 1, // Z
-    FL_NEG = 1 << 2, // N
+    FL_POS = 1 << 0, // P 001
+    FL_ZRO = 1 << 1, // Z 010
+    FL_NEG = 1 << 2, // N 100
 };
 
 
@@ -90,9 +90,7 @@ void update_flag(uint16_t r){
     }
 }
 
-int negate(uint16_t r){
 
-}
 
 int main(int argc, const char *argv[]){
 
@@ -166,7 +164,18 @@ int main(int argc, const char *argv[]){
 
                 break;
             case OP_BR:
-                // add
+                // 
+                uint16_t pc_offset = sing_extend(instr & 0x1FF, 9);    // The signed offset to jump to if the condition is true 
+                // we check bits 11-10-9 for the flag if 11 is set then 11:N 10:Z 9:P 
+                // the instr decides which flag can trigger a branch 
+                uint16_t cond_flag = (instr >> 9) & 0x7;
+                if(cond_flag & reg[R_COND]){
+                    // jump to that pcoffset if any condition was true 
+                    reg[R_PC] += pc_offset;
+                }
+
+
+
                 break;
             case OP_JMP:
                 // add
