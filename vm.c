@@ -200,17 +200,17 @@ int main(int argc, const char *argv[]){
                 }
 
                 break;
-            case OP_LD:
+            case OP_LD: // when you know the exact location of the data
                 uint16_t r0 = (instr >> 9) & 0x7;
-                uint16_t pc_offset = instr & 0x1FF;
+                uint16_t pc_offset = sign_extend (instr & 0x1FF, 9);
                 
-                reg[r0] = mem_read(reg[R_PC] + sign_extend(pc_offset, 9));
+                reg[r0] = mem_read(reg[R_PC] + pc_offset);
 
                 update_flag(r0);
 
 
                 break;
-            case OP_LDI:
+            case OP_LDI: // when working with pointers
                 // desination register
                 uint16_t r0 = (instr >> 9) & 0x7;
                 // Program-Counter offset 9 pcoffset is a signed offset value that tells the cpu how far forward or backward to move in memory
@@ -219,7 +219,7 @@ int main(int argc, const char *argv[]){
                 uint16_t pc_offset = sign_extend(instr & 0x1FF, 9); // mask out first 9-bits: see LDI instr
 
                 // add pc_offset to the current PC, look at mem location to get the final address
-                reg[r0] = mem_read(mem_read(reg[R_PC]) + pc_offset);
+                reg[r0] = mem_read(mem_read(reg[R_PC] + pc_offset));
                 update_flag(r0);
 
                 break;
