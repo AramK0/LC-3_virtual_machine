@@ -63,7 +63,7 @@ enum{
     OP_TRAP // execute trap
 };
 
-uint16_t sing_extend(uint16_t x, int bit_count){
+uint16_t sign_extend(uint16_t x, int bit_count){
     // we check if the LMB is 1 ( meaning if the number is negative) eg/ 5 bit num: x = 0b11010 -6 
     // bit_count = 5 -1 = 4
     // x >> 4 = 0b00001 and & 1 = 1 
@@ -132,7 +132,7 @@ int main(int argc, const char *argv[]){
 
                 if(imm_flag){
                     uint16_t last_five = (instr & 0x1F);
-                    uint16_t imm5 = sing_extend(last_five, 5); // we mask only the last 5 bits
+                    uint16_t imm5 = sign_extend(last_five, 5); // we mask only the last 5 bits
                     reg[r0] = reg[r1] + imm5;
                 }
                 else{
@@ -150,7 +150,7 @@ int main(int argc, const char *argv[]){
                 uint16_t r1 = (instr >> 6) & 0x7;
                 
                 if(imm_flag){
-                    uint16_t imm5 = sing_extend(instr & 0x1F, 5);
+                    uint16_t imm5 = sign_extend(instr & 0x1F, 5);
                     reg[r0] = reg[r1] * imm5;
                 }
                 else{
@@ -164,7 +164,7 @@ int main(int argc, const char *argv[]){
                 break;
             case OP_BR:
                 // 
-                uint16_t pc_offset = sing_extend(instr & 0x1FF, 9);    // The signed offset to jump to if the condition is true 
+                uint16_t pc_offset = sign_extend(instr & 0x1FF, 9);    // The signed offset to jump to if the condition is true 
                 // we check bits 11-10-9 for the flag if 11 is set then 11:N 10:Z 9:P 
                 // the instr decides which flag can trigger a branch 
                 uint16_t cond_flag = (instr >> 9) & 0x7;
@@ -196,14 +196,19 @@ int main(int argc, const char *argv[]){
                 }
                 else{
                     uint16_t pc_offset = (instr & 0x7FF);
-                    reg[R_PC] += sing_extend(pc_offset, 11); // JSR Jump To Sobroutine 
+                    reg[R_PC] += sign_extend(pc_offset, 11); // JSR Jump To Sobroutine 
                 }
-
-
 
                 break;
             case OP_LD:
-                // add
+                uint16_t r0 = (instr >> 9) & 0x7;
+                uint16_t pc_offset = instr & 0x1FF;
+                
+                reg[r0] = mem_read(reg[R_PC] + sign_extend(pc_offset, 9));
+
+                update_flag(r0);
+
+
                 break;
             case OP_LDI:
                 // desination register
@@ -211,18 +216,15 @@ int main(int argc, const char *argv[]){
                 // Program-Counter offset 9 pcoffset is a signed offset value that tells the cpu how far forward or backward to move in memory
                 // the CPU takes the current program-counter PC, adds the PCoffset , and the result is the target memory address
                 // Target address = PC + PCoffset
-                uint16_t pc_offset = sing_extend(instr & 0x1FF, 9); // mask out first 9-bits: see LDI instr
+                uint16_t pc_offset = sign_extend(instr & 0x1FF, 9); // mask out first 9-bits: see LDI instr
 
                 // add pc_offset to the current PC, look at mem location to get the final address
                 reg[r0] = mem_read(mem_read(reg[R_PC]) + pc_offset);
                 update_flag(r0);
 
-
-
-
                 break;
             case OP_LDR:
-                // add
+                
                 break;
             case OP_LEA:
                 // add
