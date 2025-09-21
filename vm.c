@@ -223,11 +223,26 @@ int main(int argc, const char *argv[]){
                 update_flag(r0);
 
                 break;
-            case OP_LDR:
-                
+            case OP_LDR: // LDR R4, R2, #−5 ; R4 ← mem[R2 − 5]
+
+                uint16_t DR = (instr >> 9) & 0x7;
+                uint16_t base_r = (instr >> 6) & 0x7;
+                uint16_t pc_offset = sign_extend(instr & 0x3F, 6);
+
+                reg[DR] = mem_read(reg[base_r] + pc_offset);
+
+                update_flag(DR);
+
                 break;
-            case OP_LEA:
-                // add
+            case OP_LEA: // The Load-Effective-Address does NOT read memory to obtain the information to load into DR.
+                        // the address itself is loaded into DR 
+                uint16_t r0 = (instr >> 9) & 0x7;
+                uint16_t pc_offset = sign_extend(instr & 0x1FF, 9);
+
+                reg[r0] = reg[R_PC] + pc_offset;
+                
+                update_flag(r0);
+
                 break;
             case OP_NOT:
                     
