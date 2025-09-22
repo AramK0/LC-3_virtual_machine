@@ -63,6 +63,17 @@ enum{
     OP_TRAP // execute trap
 };
 
+// Trap routines
+
+enum{
+    TRAP_GETC = 0x20, 
+    TRAP_OUT = 0x21,
+    TRAP_PUTS = 0x22,
+    TRAP_IN = 0x23,
+    TRAP_PUTSP = 0x24,
+    TRAP_HALT = 0x25
+};
+
 uint16_t sign_extend(uint16_t x, int bit_count){
     // we check if the LMB is 1 ( meaning if the number is negative) eg/ 5 bit num: x = 0b11010 -6 
     // bit_count = 5 -1 = 4
@@ -255,16 +266,44 @@ int main(int argc, const char *argv[]){
 
                 break;
             case OP_ST:
-                // add
+                uint16_t SR = (instr >> 9) & 0x7;
+                uint16_t pc_offset = sign_extend(instr & 0x1FF, 9);
+
+                mem_write(reg[R_PC] + pc_offset, reg[SR]);
+            
                 break;
             case OP_STI:
-                // add
+                uint16_t SR = (instr >> 9) & 0x7;
+                uint16_t pc_offset = sign_extend(instr & 0x1FF, 9);
+                mem_write(mem_read(reg[R_PC] + pc_offset), reg[SR]);
+
                 break;
             case OP_STR:
-                // add
+                uint16_t SR = (instr >> 9) & 0x7;
+                uint16_t BaseR = (instr >> 6) & 0x7;
+                uint16_t pc_offset = sign_extend(instr & 0x3F, 6);
+                
+                mem_write(reg[BaseR] + pc_offset, reg[SR]);
+
                 break;
             case OP_TRAP:
-                // add
+                reg[R_R7] = reg[R_PC];
+                switch(instr & 0xFF){
+                    case TRAP_GETC:
+                        break;
+                    case TRAP_OUT:
+                        break;
+                    case TRAP_PUTS:
+                        break;
+                    case TRAP_IN:
+                        break;
+                    case TRAP_PUTSP:
+                        break;
+                    case TRAP_HALT:
+                        break;
+                }    
+
+
                 break;
             case OP_RTI:
             case OP_RES:
