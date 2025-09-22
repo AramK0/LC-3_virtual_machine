@@ -290,10 +290,18 @@ int main(int argc, const char *argv[]){
                 reg[R_R7] = reg[R_PC];
                 switch(instr & 0xFF){
                     case TRAP_GETC:
+                    
                         break;
                     case TRAP_OUT:
                         break;
                     case TRAP_PUTS:
+                        char *c = memory + reg[R_R0]; // we give it the string address first in memory
+                        while(*c){
+                            putc((char)*c, stdout); // read singl character , cast to 8-bit first 
+                            ++c; // move the pointer to the next address
+                        }
+                        fflush(stdout);
+
                         break;
                     case TRAP_IN:
                         break;
