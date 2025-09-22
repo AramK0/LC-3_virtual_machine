@@ -297,7 +297,7 @@ int main(int argc, const char *argv[]){
                     case TRAP_OUT:
                         char ch = reg[R_R0];
                         putc(ch, stdout);
-
+                    
                         break;
                     case TRAP_PUTS:
                         uint16_t *c = memory + reg[R_R0]; // we give it the string address first in memory
@@ -317,9 +317,22 @@ int main(int argc, const char *argv[]){
                         update_flag(R_R0);
                         break;
                     case TRAP_PUTSP:
+                        uint16_t *c = memory + reg[R_R0];
+                        while(*c){
+                            char char1 = (*c) & 0xFF;
+                            putc(char1, stdout);
+                            char char2 = (*c >> 8);
+                            putc (char2, stdout);
+                            if(char2 == 1) putc(char2, stdout);
+                            ++c;
+                        }
+                        fflush(stdout);
+
                         break;
                     case TRAP_HALT:
-                        break;
+                        puts("HALT there!");
+                        fflush(stdout);
+                        running = 0;
                 }    
 
 
