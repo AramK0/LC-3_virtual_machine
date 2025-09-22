@@ -290,12 +290,17 @@ int main(int argc, const char *argv[]){
                 reg[R_R7] = reg[R_PC];
                 switch(instr & 0xFF){
                     case TRAP_GETC:
-                    
+                        reg[R_R0] = (uint16_t)getchar(); // getchar returns a 32-bit integer value so we make it 16-bit as our registers are
+                        update_flag(R_R0);
+
                         break;
                     case TRAP_OUT:
+                        char ch = reg[R_R0];
+                        putc(ch, stdout);
+
                         break;
                     case TRAP_PUTS:
-                        char *c = memory + reg[R_R0]; // we give it the string address first in memory
+                        uint16_t *c = memory + reg[R_R0]; // we give it the string address first in memory
                         while(*c){
                             putc((char)*c, stdout); // read singl character , cast to 8-bit first 
                             ++c; // move the pointer to the next address
@@ -304,6 +309,12 @@ int main(int argc, const char *argv[]){
 
                         break;
                     case TRAP_IN:
+                        printf("Enter a single character: ");
+                        char c = getchar(); // 32-bit val
+                        putc(c, stdout);
+                        fflush(stdout);
+                        reg[R_R0] = (uint16_t)c; 
+                        update_flag(R_R0);
                         break;
                     case TRAP_PUTSP:
                         break;
