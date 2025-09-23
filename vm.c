@@ -74,6 +74,36 @@ enum{
     TRAP_HALT = 0x25
 };
 
+// we give it a file containing an array of instructions and data that was created from converting assembly into machine code
+// we load this by copying the files contents into an address in memory 
+void read_image_file(FILE *file){
+    // The origin:first 16-bits tells us when in memory to place the image
+    uint16_t origin;    
+    fread(&origin, sizeof(origin), 1, file); // fread transfers data from an already opened file into the program memory
+    origin = swap16(origin);
+
+    // we know maximum file size so we only need one fread
+    uint16_t max_read = MEMORY_MAX - origin; // 65,536 - 12,288 = 53,248 we can read 53,248 16-bit words from the file before we hit the end
+    // of available memory
+    // this pointer points to the start of memory where we want to start loading the programs
+    uint16_t *p = memory + origin; // memory[0] + 12,288 = memory[12,288] meanning 0x300
+    // reads up to 53,248(max_read) 16-bit words from the binary file
+    // and loads them into memory starting at address 0x3000(*p)
+    // read tells us how many words were actually read 
+    size_t read = fread(p, sizeof(uint16_t), max_read, file);
+
+    // swap to little indian
+    while(read-- > 0){
+        *p = swap16(*p);
+        ++p;
+    }
+
+}
+
+uint16_t swap16(uint16_t x){
+    return (x << 8) | (x >> 8);
+}
+
 uint16_t sign_extend(uint16_t x, int bit_count){
     // we check if the LMB is 1 ( meaning if the number is negative) eg/ 5 bit num: x = 0b11010 -6 
     // bit_count = 5 -1 = 4
@@ -287,7 +317,8 @@ int main(int argc, const char *argv[]){
 
                 break;
             case OP_TRAP:
-                reg[R_R7] = reg[R_PC];
+                reg[R_R7] = reg[R_PC]; // save the return address in R7
+
                 switch(instr & 0xFF){
                     case TRAP_GETC:
                         reg[R_R0] = (uint16_t)getchar(); // getchar returns a 32-bit integer value so we make it 16-bit as our registers are
@@ -340,14 +371,12 @@ int main(int argc, const char *argv[]){
             case OP_RTI:
             case OP_RES:
             default:
-                // bad opcode
+                
                 break;
             
         }
 
     }
-
-
 
 
 
