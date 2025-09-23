@@ -104,6 +104,18 @@ uint16_t swap16(uint16_t x){
     return (x << 8) | (x >> 8);
 }
 
+int read_image(const char *image_path){
+    FILE *file = fopen(image_path, "rb"); // r: read b: open the file in binary mode
+    if(!file){
+    
+        return 0;
+    }
+    read_image_file(file);
+    fclose(file);
+    return 1;
+}
+
+
 uint16_t sign_extend(uint16_t x, int bit_count){
     // we check if the LMB is 1 ( meaning if the number is negative) eg/ 5 bit num: x = 0b11010 -6 
     // bit_count = 5 -1 = 4
