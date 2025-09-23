@@ -74,6 +74,12 @@ enum{
     TRAP_HALT = 0x25
 };
 
+// memory mapped registers, we can read or write to them by reading or writing to their memory locations
+enum{
+    MR_KBSR = 0xFE00,
+    MR_KBDR = 0xFE02
+};
+
 // we give it a file containing an array of instructions and data that was created from converting assembly into machine code
 // we load this by copying the files contents into an address in memory 
 void read_image_file(FILE *file){
@@ -115,6 +121,22 @@ int read_image(const char *image_path){
     return 1;
 }
 
+void mem_write(uint16_t address, uint16_t val){
+    memory[address] = val;
+}
+
+uint16_t mem_read(uint16_t address){
+    if(address == MR_KBSR){ // checks if we are asking the keyboard for data
+        if(check_key()){ // is there a key pressed
+            memory[MR_KBSR] = (1 << 15); // The MSB is used as a status flag 
+            memory[MR_KBDR] = getchar(); // store the pressed key in kbdr
+        }
+        else{
+            memory[MR_KBSR] = 0;
+        }
+    }
+    return memory[address];
+}
 
 uint16_t sign_extend(uint16_t x, int bit_count){
     // we check if the LMB is 1 ( meaning if the number is negative) eg/ 5 bit num: x = 0b11010 -6 
