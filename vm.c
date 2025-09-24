@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/time.h>
@@ -151,7 +153,7 @@ void read_image_file(FILE *file){
 int read_image(const char *image_path){
     FILE *file = fopen(image_path, "rb"); // r: read b: open the file in binary mode
     if(!file){
-    
+        fprintf(stderr, "File doesnt exit\n");
         return 0;
     }
     read_image_file(file);
@@ -209,12 +211,12 @@ void handle_interrupt(int signal)
     exit(-2);
 }
 
-int main(int argc, const char *argv[]){
+int main(){
 
     signal(SIGINT, handle_interrupt);
     disable_input_buffering();
 
-    if(argc < 2){
+/*    if(argc < 2){
         // show usage string
         printf("lc3 [image-file1]...\n");
         exit(2); // code 2 is misue of shell comms (invalid or missing args, etc.)
@@ -225,259 +227,294 @@ int main(int argc, const char *argv[]){
             printf("Failed to load image: %s\n", argv[j]);
             exit(1);
         }
-    }
+    } */
 
+    
+    bool running = 1;
+    int choice = 0;
+    char path[1024];
 
-    // only one condtion flag should be up at a time so we set the Zro flag
     reg[R_COND] = FL_ZRO;
 
     enum{ PC_START = 0x3000}; // the memory location where the pc will start and have it to the counter register
     reg[R_PC] = PC_START;
 
-    int running = 1;
-    while(running){
-        // step 1: fetch the instruction from memory at the address of the pc register
-        uint16_t instr = mem_read(reg[R_PC]++); 
-        // get the top 4 bits for the type of instr
-        uint16_t op = instr >> 12;
+    while(1){
+        printf("Welcome to LC-3 VM.\n");
+        printf("Please choose one of the following arguements: 1-Give an assembly file 2-quit: ");
+        restore_input_buffering();
+        scanf("%d", &choice);
+        getchar();
 
-        switch(op){
-            case OP_ADD:{
-                // destination register DR (bits 11-9)
-                // we get the INDEX to register 0
-                uint16_t r0 = (instr >> 9) & 0x7; // result: r0 = 000
-                // bits (8-6) we move to 2:0 and mask it out with 0x7 which is 111 in binary
-                uint16_t r1 = (instr >> 6) & 0x7; // result: r1 = 001
-
-                uint16_t imm_flag = (instr >> 5) & 0x1; // we check to see if bit 5 is 0 or 1
-
-                if(imm_flag){
-                    uint16_t last_five = (instr & 0x1F);
-                    uint16_t imm5 = sign_extend(last_five, 5); // we mask only the last 5 bits
-                    reg[r0] = reg[r1] + imm5;
-                }
-                else{
-                    // bits 2-0
-                    uint16_t r2 = (instr & 0x7);  // only mask out last three bits 
-                    reg[r0] = reg[r1] + reg[r2];
-                }
-                
-                update_flag(r0);
-
-
-                break;
-            }
-            case OP_AND:{
-                uint16_t r0 = (instr >> 9) & 0x7;
-                uint16_t r1 = (instr >> 6) & 0x7;
-                
-                uint16_t imm_flag = (instr >> 5) & 0x1;
-
-                if(imm_flag){
-                    uint16_t imm5 = sign_extend(instr & 0x1F, 5);
-                    reg[r0] = reg[r1] & imm5;
-                }
-                else{
-                    uint16_t r2 = (instr & 0x7);
-                    reg[r0] = reg[r1] & reg[r2];
-                }
-
-                update_flag(r0);
-
-
-                break;
-            }
-            case OP_BR:{
-                // 
-                uint16_t pc_offset = sign_extend(instr & 0x1FF, 9);    // The signed offset to jump to if the condition is true 
-                // we check bits 11-10-9 for the flag if 11 is set then 11:N 10:Z 9:P 
-                // the instr decides which flag can trigger a branch 
-                uint16_t cond_flag = (instr >> 9) & 0x7;
-                if(cond_flag & reg[R_COND]){
-                    // jump to that pcoffset if any condition was true 
-                    reg[R_PC] += pc_offset;
-                }
-
-
-                break;
-            }
-            case OP_JMP:{
-
-                uint16_t r1 = (instr >> 6) & 0x7;
-                reg[R_PC] = reg[r1];    // Also does RET when the reg is r7 as r7 is used for return addresses so we return to where we came from
-
-
-                break;
-            }
-            case OP_JSR:{
-                
-                // its basically two options of jumpting to a function(subroutine) address by either jumping to the register 
-                // address of a function or jumpting to that function address directly
-                reg[R_R7] = reg[R_PC]; // we save the return address in reg7 to return to after the subroutine(function)
-                uint16_t bit_el = (instr >> 11) & 0x1;
-                
-
-                if(bit_el == 0){
-                    uint16_t r1 = (instr >> 6) & 0x7;
-                    reg[R_PC] = reg[r1]; //JSRR jump to subroutine register 
-                }
-                else{
-                    uint16_t pc_offset = (instr & 0x7FF);
-                    reg[R_PC] += sign_extend(pc_offset, 11); // JSR Jump To Sobroutine 
-                }
-
-                break;
-            }
-            case OP_LD:{ // when you know the exact location of the data
-                uint16_t r0 = (instr >> 9) & 0x7;
-                uint16_t pc_offset = sign_extend (instr & 0x1FF, 9);
-                
-                reg[r0] = mem_read(reg[R_PC] + pc_offset);
-
-                update_flag(r0);
-
-
-                break;
-            }
-            case OP_LDI:{ // when working with pointers
-                // desination register
-                uint16_t r0 = (instr >> 9) & 0x7;
-                // Program-Counter offset 9 pcoffset is a signed offset value that tells the cpu how far forward or backward to move in memory
-                // the CPU takes the current program-counter PC, adds the PCoffset , and the result is the target memory address
-                // Target address = PC + PCoffset
-                uint16_t pc_offset = sign_extend(instr & 0x1FF, 9); // mask out first 9-bits: see LDI instr
-
-                // add pc_offset to the current PC, look at mem location to get the final address
-                reg[r0] = mem_read(mem_read(reg[R_PC] + pc_offset));
-                update_flag(r0);
-
-                break;
-            }
-            case OP_LDR:{ // LDR R4, R2, #−5 ; R4 ← mem[R2 − 5]
-
-                uint16_t DR = (instr >> 9) & 0x7;
-                uint16_t base_r = (instr >> 6) & 0x7;
-                uint16_t pc_offset = sign_extend(instr & 0x3F, 6);
-
-                reg[DR] = mem_read(reg[base_r] + pc_offset);
-
-                update_flag(DR);
-
-                break;
-            }
-            case OP_LEA:{ // The Load-Effective-Address does NOT read memory to obtain the information to load into DR.
-                        // the address itself is loaded into DR 
-                uint16_t r0 = (instr >> 9) & 0x7;
-                uint16_t pc_offset = sign_extend(instr & 0x1FF, 9);
-
-                reg[r0] = reg[R_PC] + pc_offset;
-                
-                update_flag(r0);
-
-                break;
-            }
-            case OP_NOT:{
-                    
-                uint16_t r0 = (instr >> 9) & 0x7;
-                uint16_t r1 = (instr >> 6) & 0x7;
-
-                reg[r0] = ~reg[r1];
-
-                update_flag(r0);
-
-                break;
-            }
-            case OP_ST:{
-                uint16_t SR = (instr >> 9) & 0x7;
-                uint16_t pc_offset = sign_extend(instr & 0x1FF, 9);
-
-                mem_write(reg[R_PC] + pc_offset, reg[SR]);
-            
-                break;
-            }
-            case OP_STI:{
-                uint16_t SR = (instr >> 9) & 0x7;
-                uint16_t pc_offset = sign_extend(instr & 0x1FF, 9);
-                mem_write(mem_read(reg[R_PC] + pc_offset), reg[SR]);
-
-                break;
-            }
-            case OP_STR:{
-                uint16_t SR = (instr >> 9) & 0x7;
-                uint16_t BaseR = (instr >> 6) & 0x7;
-                uint16_t pc_offset = sign_extend(instr & 0x3F, 6);
-                
-                mem_write(reg[BaseR] + pc_offset, reg[SR]);
-
-                break;
-            }
-            case OP_TRAP:
-                reg[R_R7] = reg[R_PC]; // save the return address in R7
-
-                switch(instr & 0xFF){
-                    case TRAP_GETC:{
-                        reg[R_R0] = (uint16_t)getchar(); // getchar returns a 32-bit integer value so we make it 16-bit as our registers are
-                        update_flag(R_R0);
-
-                        break;
-                    }
-                    case TRAP_OUT:{
-                        char ch = reg[R_R0];
-                        putc(ch, stdout);
-                    
-                        break;
-                    }
-                    case TRAP_PUTS:{
-                        uint16_t *c = memory + reg[R_R0]; // we give it the string address first in memory
-                        while(*c){
-                            putc((char)*c, stdout); // read singl character , cast to 8-bit first 
-                            ++c; // move the pointer to the next address
-                        }
-                        fflush(stdout);
-
-                        break;
-                    }
-                    case TRAP_IN:{
-                        printf("Enter a single character: ");
-                        char c = getchar(); // 32-bit val
-                        putc(c, stdout);
-                        fflush(stdout);
-                        reg[R_R0] = (uint16_t)c; 
-                        update_flag(R_R0);
-                        break;
-                    }
-                    case TRAP_PUTSP:{
-                        uint16_t *c = memory + reg[R_R0];
-                        while(*c){
-                            char char1 = (*c) & 0xFF;
-                            putc(char1, stdout);
-                            char char2 = (*c >> 8);
-                            putc (char2, stdout);
-                            if(char2 == 1) putc(char2, stdout);
-                            ++c;
-                        }
-                        fflush(stdout);
-
-                        break;
-                    }
-                    case TRAP_HALT:
-                        puts("HALT there!");
-                        fflush(stdout);
-                        running = 0;
-                }    
-
-
-                break;
-            case OP_RTI:
-            case OP_RES:
-            default:
-                
-                break;
-            
+        if(choice == 2){
+            printf("Goodbye.\n");
+            return 0;
         }
+        else if(choice == 1){
+            
+            printf("Enter the path to the assembly file you wish to run: ");
+            fflush(stdout);
+            fgets(path, sizeof(path), stdin);
+            path[strcspn(path, "\n")] = '\0';
+            fflush(stdout);
+            char *p = path;
+            read_image(p);
+            
+            disable_input_buffering();
 
-    }
+            int running = 1;
+            while(running){
+                // step 1: fetch the instruction from memory at the address of the pc register
+                uint16_t instr = mem_read(reg[R_PC]++); 
+                // get the top 4 bits for the type of instr
+                uint16_t op = instr >> 12;
 
+                switch(op){
+                    case OP_ADD:{
+                        // destination register DR (bits 11-9)
+                        // we get the INDEX to register 0
+                        uint16_t r0 = (instr >> 9) & 0x7; // result: r0 = 000
+                        // bits (8-6) we move to 2:0 and mask it out with 0x7 which is 111 in binary
+                        uint16_t r1 = (instr >> 6) & 0x7; // result: r1 = 001
+
+                        uint16_t imm_flag = (instr >> 5) & 0x1; // we check to see if bit 5 is 0 or 1
+
+                        if(imm_flag){
+                            uint16_t last_five = (instr & 0x1F);
+                            uint16_t imm5 = sign_extend(last_five, 5); // we mask only the last 5 bits
+                            reg[r0] = reg[r1] + imm5;
+                        }
+                        else{
+                            // bits 2-0
+                            uint16_t r2 = (instr & 0x7);  // only mask out last three bits 
+                            reg[r0] = reg[r1] + reg[r2];
+                        }
+                        
+                        update_flag(r0);
+
+
+                        break;
+                    }
+                    case OP_AND:{
+                        uint16_t r0 = (instr >> 9) & 0x7;
+                        uint16_t r1 = (instr >> 6) & 0x7;
+                        
+                        uint16_t imm_flag = (instr >> 5) & 0x1;
+
+                        if(imm_flag){
+                            uint16_t imm5 = sign_extend(instr & 0x1F, 5);
+                            reg[r0] = reg[r1] & imm5;
+                        }
+                        else{
+                            uint16_t r2 = (instr & 0x7);
+                            reg[r0] = reg[r1] & reg[r2];
+                        }
+
+                        update_flag(r0);
+
+
+                        break;
+                    }
+                    case OP_BR:{
+                        // 
+                        uint16_t pc_offset = sign_extend(instr & 0x1FF, 9);    // The signed offset to jump to if the condition is true 
+                        // we check bits 11-10-9 for the flag if 11 is set then 11:N 10:Z 9:P 
+                        // the instr decides which flag can trigger a branch 
+                        uint16_t cond_flag = (instr >> 9) & 0x7;
+                        if(cond_flag & reg[R_COND]){
+                            // jump to that pcoffset if any condition was true 
+                            reg[R_PC] += pc_offset;
+                        }
+
+
+                        break;
+                    }
+                    case OP_JMP:{
+
+                        uint16_t r1 = (instr >> 6) & 0x7;
+                        reg[R_PC] = reg[r1];    // Also does RET when the reg is r7 as r7 is used for return addresses so we return to where we came from
+
+
+                        break;
+                    }
+                    case OP_JSR:{
+                        
+                        // its basically two options of jumpting to a function(subroutine) address by either jumping to the register 
+                        // address of a function or jumpting to that function address directly
+                        reg[R_R7] = reg[R_PC]; // we save the return address in reg7 to return to after the subroutine(function)
+                        uint16_t bit_el = (instr >> 11) & 0x1;
+                        
+
+                        if(bit_el == 0){
+                            uint16_t r1 = (instr >> 6) & 0x7;
+                            reg[R_PC] = reg[r1]; //JSRR jump to subroutine register 
+                        }
+                        else{
+                            uint16_t pc_offset = (instr & 0x7FF);
+                            reg[R_PC] += sign_extend(pc_offset, 11); // JSR Jump To Sobroutine 
+                        }
+
+                        break;
+                    }
+                    case OP_LD:{ // when you know the exact location of the data
+                        uint16_t r0 = (instr >> 9) & 0x7;
+                        uint16_t pc_offset = sign_extend (instr & 0x1FF, 9);
+                        
+                        reg[r0] = mem_read(reg[R_PC] + pc_offset);
+
+                        update_flag(r0);
+
+
+                        break;
+                    }
+                    case OP_LDI:{ // when working with pointers
+                        // desination register
+                        uint16_t r0 = (instr >> 9) & 0x7;
+                        // Program-Counter offset 9 pcoffset is a signed offset value that tells the cpu how far forward or backward to move in memory
+                        // the CPU takes the current program-counter PC, adds the PCoffset , and the result is the target memory address
+                        // Target address = PC + PCoffset
+                        uint16_t pc_offset = sign_extend(instr & 0x1FF, 9); // mask out first 9-bits: see LDI instr
+
+                        // add pc_offset to the current PC, look at mem location to get the final address
+                        reg[r0] = mem_read(mem_read(reg[R_PC] + pc_offset));
+                        update_flag(r0);
+
+                        break;
+                    }
+                    case OP_LDR:{ // LDR R4, R2, #−5 ; R4 ← mem[R2 − 5]
+
+                        uint16_t DR = (instr >> 9) & 0x7;
+                        uint16_t base_r = (instr >> 6) & 0x7;
+                        uint16_t pc_offset = sign_extend(instr & 0x3F, 6);
+
+                        reg[DR] = mem_read(reg[base_r] + pc_offset);
+
+                        update_flag(DR);
+
+                        break;
+                    }
+                    case OP_LEA:{ // The Load-Effective-Address does NOT read memory to obtain the information to load into DR.
+                                // the address itself is loaded into DR 
+                        uint16_t r0 = (instr >> 9) & 0x7;
+                        uint16_t pc_offset = sign_extend(instr & 0x1FF, 9);
+
+                        reg[r0] = reg[R_PC] + pc_offset;
+                        
+                        update_flag(r0);
+
+                        break;
+                    }
+                    case OP_NOT:{
+                            
+                        uint16_t r0 = (instr >> 9) & 0x7;
+                        uint16_t r1 = (instr >> 6) & 0x7;
+
+                        reg[r0] = ~reg[r1];
+
+                        update_flag(r0);
+
+                        break;
+                    }
+                    case OP_ST:{
+                        uint16_t SR = (instr >> 9) & 0x7;
+                        uint16_t pc_offset = sign_extend(instr & 0x1FF, 9);
+
+                        mem_write(reg[R_PC] + pc_offset, reg[SR]);
+                    
+                        break;
+                    }
+                    case OP_STI:{
+                        uint16_t SR = (instr >> 9) & 0x7;
+                        uint16_t pc_offset = sign_extend(instr & 0x1FF, 9);
+                        mem_write(mem_read(reg[R_PC] + pc_offset), reg[SR]);
+
+                        break;
+                    }
+                    case OP_STR:{
+                        uint16_t SR = (instr >> 9) & 0x7;
+                        uint16_t BaseR = (instr >> 6) & 0x7;
+                        uint16_t pc_offset = sign_extend(instr & 0x3F, 6);
+                        
+                        mem_write(reg[BaseR] + pc_offset, reg[SR]);
+
+                        break;
+                    }
+                    case OP_TRAP:
+                        reg[R_R7] = reg[R_PC]; // save the return address in R7
+
+                        switch(instr & 0xFF){
+                            case TRAP_GETC:{
+                                reg[R_R0] = (uint16_t)getchar(); // getchar returns a 32-bit integer value so we make it 16-bit as our registers are
+                                update_flag(R_R0);
+
+                                break;
+                            }
+                            case TRAP_OUT:{
+                                char ch = reg[R_R0];
+                                putc(ch, stdout);
+                            
+                                break;
+                            }
+                            case TRAP_PUTS:{
+                                uint16_t *c = memory + reg[R_R0]; // we give it the string address first in memory
+                                while(*c){
+                                    putc((char)*c, stdout); // read singl character , cast to 8-bit first 
+                                    ++c; // move the pointer to the next address
+                                }
+                                fflush(stdout);
+
+                                break;
+                            }
+                            case TRAP_IN:{
+                                printf("Enter a single character: ");
+                                char c = getchar(); // 32-bit val
+                                putc(c, stdout);
+                                fflush(stdout);
+                                reg[R_R0] = (uint16_t)c; 
+                                update_flag(R_R0);
+                                break;
+                            }
+                            case TRAP_PUTSP:{
+                                uint16_t *c = memory + reg[R_R0];
+                                while(*c){
+                                    char char1 = (*c) & 0xFF;
+                                    putc(char1, stdout);
+                                    char char2 = (*c >> 8);
+                                    putc (char2, stdout);
+                                    if(char2 == 1) putc(char2, stdout);
+                                    ++c;
+                                }
+                                fflush(stdout);
+
+                                break;
+                            }
+                            case TRAP_HALT:
+                                puts("HALT there!");
+                                fflush(stdout);
+                                running = 0;
+                        }    
+
+
+                        break;
+                    case OP_RTI:
+                    case OP_RES:
+                    default:
+                        
+                        break;
+                    
+                }
+
+            }
+
+                }
+            }
+
+    
+
+    // only one condtion flag should be up at a time so we set the Zro flag
+    
+
+    
     restore_input_buffering();
 
     return 0;
