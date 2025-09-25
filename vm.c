@@ -211,6 +211,8 @@ void handle_interrupt(int signal)
     exit(-2);
 }
 
+int run_vm();
+
 int main(){
 
     printf("**********************************\n");
@@ -219,20 +221,19 @@ int main(){
     signal(SIGINT, handle_interrupt);
     disable_input_buffering();
 
-/*    if(argc < 2){
-        // show usage string
-        printf("lc3 [image-file1]...\n");
-        exit(2); // code 2 is misue of shell comms (invalid or missing args, etc.)
-    }
 
-    for(int j = 1; j < argc; ++j){
-        if(!read_image(argv[j])){ // argv is an array of string pointers
-            printf("Failed to load image: %s\n", argv[j]);
-            exit(1);
-        }
-    } */
-
+    run_vm();
     
+    
+            
+    restore_input_buffering();
+
+    return 0;
+}
+
+
+int run_vm(){
+
     int running = 1;
     int choice = 0;
     char path[1024];
@@ -257,6 +258,7 @@ int main(){
             printf("Enter the path to the assembly file you wish to run: ");
             fflush(stdout);
             fgets(path, sizeof(path), stdin);
+            printf("********************\n");
             path[strcspn(path, "\n")] = '\0';
             fflush(stdout);
             char *p = path;
@@ -496,7 +498,9 @@ int main(){
                                 break;
                             }
                             case TRAP_HALT:
-                                puts("HALT there!");
+                                printf("\n");
+                                printf("********************\n");
+                                printf("END\n");
                                 fflush(stdout);
                                 running = 0;
                         }    
@@ -515,9 +519,7 @@ int main(){
 
                 }
             }
+        
+    return 1;
 
-            
-    restore_input_buffering();
-
-    return 0;
 }
