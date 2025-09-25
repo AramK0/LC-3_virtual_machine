@@ -213,6 +213,9 @@ void handle_interrupt(int signal)
 
 int main(){
 
+    printf("**********************************\n");
+    printf("Welcome to LC-3 VM.\n");
+
     signal(SIGINT, handle_interrupt);
     disable_input_buffering();
 
@@ -230,7 +233,7 @@ int main(){
     } */
 
     
-    bool running = 1;
+    int running = 1;
     int choice = 0;
     char path[1024];
 
@@ -240,30 +243,34 @@ int main(){
     reg[R_PC] = PC_START;
 
     while(1){
-        printf("Welcome to LC-3 VM.\n");
-        printf("Please choose one of the following arguements: 1-Give an assembly file 2-quit: ");
+        printf("LC-3->Please choose one of the following arguements: 1-Give an assembly file 2-quit: ");
         restore_input_buffering();
         scanf("%d", &choice);
         getchar();
 
         if(choice == 2){
-            printf("Goodbye.\n");
+            printf("LC-3->Goodbye.\n");
             return 0;
         }
         else if(choice == 1){
-            
+
             printf("Enter the path to the assembly file you wish to run: ");
             fflush(stdout);
             fgets(path, sizeof(path), stdin);
             path[strcspn(path, "\n")] = '\0';
             fflush(stdout);
             char *p = path;
-            read_image(p);
             
-            disable_input_buffering();
-
+            fflush(stdout);
+            
+            
             int running = 1;
             while(running){
+
+                if(read_image(p) == 0){
+                running = 0;
+            }
+                
                 // step 1: fetch the instruction from memory at the address of the pc register
                 uint16_t instr = mem_read(reg[R_PC]++); 
                 // get the top 4 bits for the type of instr
@@ -509,12 +516,7 @@ int main(){
                 }
             }
 
-    
-
-    // only one condtion flag should be up at a time so we set the Zro flag
-    
-
-    
+            
     restore_input_buffering();
 
     return 0;
