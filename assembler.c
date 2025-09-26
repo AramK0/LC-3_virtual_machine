@@ -46,14 +46,29 @@ int main(){
         }
         
     }
+    char *sizee;
     int size = sizeof(string[0]);
-    char text[size];
+    printf("size: %d\n", size);
+    char text[20];
 
-    
-
+    uint16_t bin[20];
     strcpy(text, string[0]);
 
-   printf("%s\n", text);
+
+    for(int g = 0; g < 20; g++){
+        bin[g] = text[g];
+        bin[g] = (bin[g] << 8) | (bin[g] >> 8);
+
+        
+    }
+    
+
+       
+        printf("%s\n", text);
+
+
+
+    
  
     
 
@@ -97,9 +112,9 @@ int main(){
             HALT = 0xF025;
             HALT = (HALT << 8) | (HALT >> 8);
             fwrite(&HALT, sizeof(uint16_t), 1, f2);
+            
 
-            fwrite(&text, sizeof(text), 1, f2);
-            fwrite(&text, sizeof(text), 1, f2);
+            fwrite(&bin, sizeof(text), 1, f2);
             
 
         }
