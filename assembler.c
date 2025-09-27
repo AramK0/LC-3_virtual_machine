@@ -59,7 +59,7 @@ int end;
      printf("end: %d\n", end); */
 
      
-     int f = 0;
+     int f = 0, e = 0;
      int str_size = end - begin;
      char str3[str_size];
 
@@ -69,8 +69,13 @@ int end;
 
      for(buffer[begin]; begin <= end; begin++){
         str3[f++] = buffer[begin];
+        str3[e++] = (str3[e++] << 8) | (str3[e++] >> 8);
+
      }
+
+     str3[f] = '\0';
     printf("%s\n", str3);
+   
     
     token = strtok(buffer, ",\t\n");
     for(int e = 0; token; e++){
@@ -91,19 +96,18 @@ int end;
 
     char text[20];
 
-    uint16_t bin[20];
+    uint16_t bin[str_size];
     strcpy(text, string[0]);
 
 
-    for(int g = 0; g < 20; g++){
-        bin[g] = text[g];
+    for(int g = 0; g <= str_size; g++){
+        bin[g] = str3[g];
         bin[g] = (bin[g] << 8) | (bin[g] >> 8);
 
-        
     }
 
        
-    
+ 
 
 
 
@@ -153,7 +157,10 @@ int end;
             fwrite(&HALT, sizeof(uint16_t), 1, f2);
             
 
-            fwrite(&bin, sizeof(text), 1, f2);
+            fwrite(&bin, 2, str_size+1, f2);
+
+            
+
             
 
         }
