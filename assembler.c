@@ -27,28 +27,68 @@ int main(){
     uint16_t HALT;
     uint16_t r0;
     uint16_t r1;
-    
 
-
+int index = 0;
+char *start;
+int begin;
+int end;
     FILE *file = fopen("test.s", "r");
     FILE *f2 = fopen("yes.obj", "wb");
 
     size_t read = fread(buffer, 1, sizeof(buffer) - 1, file);
     buffer[read] = '\0';
+   
+    
 
+     for(index = 0; ; index++){
+        if(buffer[index] == 34){
+            begin = index;
+            begin++;
+            break;
+        }
+     }
+     index = index + 1;
+     for(index; ; index++){
+        if(buffer[index] == 34){
+            end = index;
+            end--;
+            break;
+        }
+     }
+     /*printf("begin: %d\n", begin);
+     printf("end: %d\n", end); */
+
+     
+     int f = 0;
+     int str_size = end - begin;
+     char str3[str_size];
+
+    /* for(buffer[begin]; begin == 34; begin++){
+        printf(" %c \n", buffer[begin]);
+     } */
+
+     for(buffer[begin]; begin <= end; begin++){
+        str3[f++] = buffer[begin];
+     }
+    printf("%s\n", str3);
+    
     token = strtok(buffer, ",\t\n");
     for(int e = 0; token; e++){
         tokenizer[i++] = token;
         token = strtok(NULL, " ,\t\n");
         if(strcmp(tokenizer[e], ".STRINGZ") == 0){
+           
+          
             token = strtok(NULL, "\n");
             string[0] = token;
         }
         
     }
+   
     char *sizee;
-    int size = sizeof(string[0]);
-    printf("size: %d\n", size);
+    int size = sizeof(string);
+
+
     char text[20];
 
     uint16_t bin[20];
@@ -61,10 +101,9 @@ int main(){
 
         
     }
-    
 
        
-        printf("%s\n", text);
+    
 
 
 
