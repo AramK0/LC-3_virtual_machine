@@ -140,25 +140,18 @@ int end;
         /*else if(strcmp(tokenizer[j], ".STRINGZ") == 0){
             //printf("%s\n", tokenizer[j+1]);
         }*/
+       
         else if(strcmp(tokenizer[j], "ADD") == 0){
             uint16_t add = 0;
             uint16_t dr;
             uint16_t sr1;
             uint16_t sr2;
-
             uint16_t mask;  
             //mask = (1 << 12);
 
             add |= (0b0001 << 12);
 
-            //  0001 000 000 000 000
-            //printf("%d\n", add);
-
-
-
-            dr = (dr >> 9) & 0x7;
-            sr1 = (dr >> 6) & 0x7;
-            sr2 = sr2 & 0x7;
+         
           
 
             if(strcmp(tokenizer[j + 1], "R0,") == 0){ 
@@ -243,19 +236,24 @@ int end;
 
             }
             else if(strcmp(tokenizer[j+3], "R3") == 0){
-                sr2 = R_R3;
+                add |= (0b011 << 0);
+
             }
             else if(strcmp(tokenizer[j+3], "R4") == 0){
-                sr2 = R_R4;
+                add |= (0b100 << 0);
+
             }
             else if(strcmp(tokenizer[j+3], "R5") == 0){
-                sr2 = R_R5;
+                add |= (0b101 << 0);
+
             }
             else if(strcmp(tokenizer[j+3], "R6") == 0){
-                sr2 = R_R6;
+                   add |= (0b110 << 0);
+
             }
             else if(strcmp(tokenizer[j+3], "R7") == 0){
-                sr2 = R_R7;
+                add |= (0b111 << 0);
+
             }
            
 
@@ -263,6 +261,122 @@ int end;
             //printf("%d\n", instr);
             add = (add << 8) | (add >> 8);
             fwrite(&add, sizeof(uint16_t), 1, f2);
+        }
+        else if(strcmp(tokenizer[j], "AND") == 0){
+            uint16_t and = 0;
+            uint16_t dr;
+            uint16_t sr1;
+            uint16_t sr2;
+            uint16_t mask;  
+            //mask = (1 << 12);
+
+            and |= (0b0101 << 12);
+
+         
+
+            if(strcmp(tokenizer[j + 1], "R0,") == 0){ 
+                // mask = 0000000000000000
+                mask = (1 << 3) - 1; // 000000000000111  we only mask three bits 
+                mask = (mask << 9);// 000111000000000
+                //mask = ~mask;// 111000111111111
+                //add &= mask; // we clear bits 9-11
+                and |= (0b000 << 9); // 0001 000 000 000 000 | 0001 111 000 000 000
+
+            }
+            else if(strcmp(tokenizer[j+1], "R1,") == 0){
+                mask = (1 << 3) - 1;
+                mask = mask << 9;
+                and |= (0b001 << 9);
+
+            }
+            else if(strcmp(tokenizer[j+1], "R2,") == 0){
+                and |= (0b010 << 9);
+            }
+            else if(strcmp(tokenizer[j+1], "R3,") == 0){
+                and |= (0b011 << 9);
+            }
+            else if(strcmp(tokenizer[j+1], "R4,") == 0){
+                and |= (0b0100 << 9);
+
+            }
+            else if(strcmp(tokenizer[j+1], "R5,") == 0){
+                and |= (0b101 << 9);
+
+            }
+            else if(strcmp(tokenizer[j+1], "R6,") == 0){
+                and |= (0b110 << 9);
+
+            }
+            else if(strcmp(tokenizer[j+1], "R7,") == 0){
+                and |= (0b111 << 9);
+
+            }
+
+
+            if(strcmp(tokenizer[j + 2], "R0,") == 0){
+                and |= (0b000 << 6);
+            }
+            else if(strcmp(tokenizer[j+2], "R1,") == 0){
+                and |= (0b001 << 6);
+
+            }
+            else if(strcmp(tokenizer[j+2], "R2,") == 0){
+                and |= (0b010 << 6);
+
+            }
+            else if(strcmp(tokenizer[j+2], "R3,") == 0){
+                and |= (0b011 << 6);
+
+            }
+            else if(strcmp(tokenizer[j+2], "R4,") == 0){
+                and |= (0b100 << 6);
+
+            }
+            else if(strcmp(tokenizer[j+2], "R5,") == 0){
+                and |= (0b101 << 6);
+            }
+            else if(strcmp(tokenizer[j+2], "R6,") == 0){
+                and |= (0b110 << 6);
+            }
+            else if(strcmp(tokenizer[j+2], "R7,") == 0){
+                and |= (0b111 << 6);
+            }
+
+            if(strcmp(tokenizer[j + 3], "R0") == 0){
+                and |= (0b000 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "R1") == 0){
+                and |= (0b001 << 0);
+
+            }
+            else if(strcmp(tokenizer[j+3], "R2") == 0){
+                and |= (0b010 << 0);
+
+            }
+            else if(strcmp(tokenizer[j+3], "R3") == 0){
+                and |= (0b011 << 0);
+
+            }
+            else if(strcmp(tokenizer[j+3], "R4") == 0){
+                and |= (0b100 << 0);
+
+            }
+            else if(strcmp(tokenizer[j+3], "R5") == 0){
+                and |= (0b101 << 0);
+
+            }
+            else if(strcmp(tokenizer[j+3], "R6") == 0){
+                and |= (0b110 << 0);
+
+            }
+            else if(strcmp(tokenizer[j+3], "R7") == 0){
+                and |= (0b111 << 0);
+
+            }
+            
+            //printf("%d\n", instr);
+            and = (and << 8) | (and >> 8);
+            fwrite(&and, sizeof(uint16_t), 1, f2);
         }
         else if(strcmp(tokenizer[j], "PUTS") == 0){
             uint16_t PUTS = 0xF022;
