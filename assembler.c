@@ -111,8 +111,8 @@ int end;
     printf("%s\n", tokenizer[e]);
 }*/
 
+            int cnt = 0;
 
-    
  
     uint16_t instr;
 
@@ -137,11 +137,9 @@ int end;
 
 
         }
-        /*else if(strcmp(tokenizer[j], ".STRINGZ") == 0){
-            //printf("%s\n", tokenizer[j+1]);
-        }*/
-       
+             
         else if(strcmp(tokenizer[j], "ADD") == 0){
+            cnt ++;
             uint16_t add = 0;
             uint16_t dr;
             uint16_t sr1;
@@ -150,9 +148,6 @@ int end;
             //mask = (1 << 12);
 
             add |= (0b0001 << 12);
-
-         
-          
 
             if(strcmp(tokenizer[j + 1], "R0,") == 0){ 
                 // mask = 0000000000000000
@@ -168,8 +163,6 @@ int end;
                 mask = (1 << 3) - 1;
                 mask = mask << 9;
                 add |= (0b001 << 9);
-
-
             }
             else if(strcmp(tokenizer[j+1], "R2,") == 0){
                 add |= (0b010 << 9);
@@ -256,11 +249,13 @@ int end;
 
             }
            
-
             
             //printf("%d\n", instr);
+        
             add = (add << 8) | (add >> 8);
             fwrite(&add, sizeof(uint16_t), 1, f2);
+
+            
         }
         else if(strcmp(tokenizer[j], "AND") == 0){
             uint16_t and = 0;
@@ -270,9 +265,9 @@ int end;
             uint16_t mask;  
             //mask = (1 << 12);
 
-            and |= (0b0101 << 12);
+            and = (0b0101 << 12);
 
-         
+         printf("%s\n", tokenizer[j + 3]);
 
             if(strcmp(tokenizer[j + 1], "R0,") == 0){ 
                 // mask = 0000000000000000
@@ -282,12 +277,12 @@ int end;
                 //add &= mask; // we clear bits 9-11
                 and |= (0b000 << 9); // 0001 000 000 000 000 | 0001 111 000 000 000
 
+
             }
             else if(strcmp(tokenizer[j+1], "R1,") == 0){
                 mask = (1 << 3) - 1;
                 mask = mask << 9;
                 and |= (0b001 << 9);
-
             }
             else if(strcmp(tokenizer[j+1], "R2,") == 0){
                 and |= (0b010 << 9);
@@ -296,7 +291,7 @@ int end;
                 and |= (0b011 << 9);
             }
             else if(strcmp(tokenizer[j+1], "R4,") == 0){
-                and |= (0b0100 << 9);
+                and |= (0b100 << 9);
 
             }
             else if(strcmp(tokenizer[j+1], "R5,") == 0){
@@ -373,7 +368,6 @@ int end;
                 and |= (0b111 << 0);
 
             }
-            
             //printf("%d\n", instr);
             and = (and << 8) | (and >> 8);
             fwrite(&and, sizeof(uint16_t), 1, f2);
