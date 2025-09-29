@@ -13,7 +13,19 @@
 
 #define TOKEN_SIZE 1024
 
-
+enum{
+    R_R0 = 0,
+    R_R1,
+    R_R2,
+    R_R3,
+    R_R4,
+    R_R5,
+    R_R6,
+    R_R7,
+    R_PC, /* program counter */
+    R_COND,
+    R_COUNT
+};
 
 int main(){
 
@@ -32,7 +44,7 @@ int index = 0;
 char *start;
 int begin;
 int end;
-    FILE *file = fopen("test.s", "r");
+    FILE *file = fopen("try.s", "rb");
     FILE *f2 = fopen("yes.obj", "wb");
 
     size_t read = fread(buffer, 1, sizeof(buffer) - 1, file);
@@ -40,7 +52,7 @@ int end;
    
     
 
-     for(index = 0; ; index++){
+     for(index = 0; index <= read ; index++){
         if(buffer[index] == 34){
             begin = index;
             begin++;
@@ -48,15 +60,13 @@ int end;
         }
      }
      index = index + 1;
-     for(index; ; index++){
+     for(index; index <= read ; index++){
         if(buffer[index] == 34){
             end = index;
             end--;
             break;
         }
      }
-     /*printf("begin: %d\n", begin);
-     printf("end: %d\n", end); */
 
      
      int f = 0, e = 0;
@@ -74,30 +84,19 @@ int end;
      }
 
      str3[f] = '\0';
-    printf("%s\n", str3);
    
     
     token = strtok(buffer, ",\t\n");
     for(int e = 0; token; e++){
         tokenizer[i++] = token;
-        token = strtok(NULL, " ,\t\n");
-        if(strcmp(tokenizer[e], ".STRINGZ") == 0){
-           
-          
-            token = strtok(NULL, "\n");
-            string[0] = token;
-        }
+        token = strtok(NULL, " \n");
+        
         
     }
    
-    char *sizee;
-    int size = sizeof(string);
-
-
-    char text[20];
 
     uint16_t bin[str_size];
-    strcpy(text, string[0]);
+   
 
 
     for(int g = 0; g <= str_size; g++){
@@ -108,12 +107,14 @@ int end;
 
        
  
-
+/*for(int e = 0; e < i; e++){
+    printf("%s\n", tokenizer[e]);
+}*/
 
 
     
  
-    
+    uint16_t instr;
 
     tokenizer[i] = NULL;
     for(int j = 0; j < i; j++){
@@ -136,13 +137,132 @@ int end;
 
 
         }
-        else if(strcmp(tokenizer[j], ".STRINGZ") == 0){
+        /*else if(strcmp(tokenizer[j], ".STRINGZ") == 0){
             //printf("%s\n", tokenizer[j+1]);
-        }
+        }*/
         else if(strcmp(tokenizer[j], "ADD") == 0){
-            ADD = 0x1007;
-            ADD = (ADD << 8) | (ADD >> 8);
-            fwrite(&ADD, sizeof(uint16_t), 1, f2);
+            uint16_t add = 0;
+            uint16_t dr;
+            uint16_t sr1;
+            uint16_t sr2;
+
+            uint16_t mask;  
+            //mask = (1 << 12);
+
+            add |= (0b0001 << 12);
+
+            //  0001 000 000 000 000
+            //printf("%d\n", add);
+
+
+
+            dr = (dr >> 9) & 0x7;
+            sr1 = (dr >> 6) & 0x7;
+            sr2 = sr2 & 0x7;
+          
+
+            if(strcmp(tokenizer[j + 1], "R0,") == 0){ 
+                // mask = 0000000000000000
+                mask = (1 << 3) - 1; // 000000000000111  we only mask three bits 
+                mask = (mask << 9);// 000111000000000
+                //mask = ~mask;// 111000111111111
+                //add &= mask; // we clear bits 9-11
+                add |= (0b000 << 9); // 0001 000 000 000 000 | 0001 111 000 000 000
+
+
+            }
+            else if(strcmp(tokenizer[j+1], "R1,") == 0){
+                mask = (1 << 3) - 1;
+                mask = mask << 9;
+                add |= (0b001 << 9);
+
+
+            }
+            else if(strcmp(tokenizer[j+1], "R2,") == 0){
+                add |= (0b010 << 9);
+            }
+            else if(strcmp(tokenizer[j+1], "R3,") == 0){
+                add |= (0b011 << 9);
+            }
+            else if(strcmp(tokenizer[j+1], "R4,") == 0){
+                add |= (0b0100 << 9);
+
+            }
+            else if(strcmp(tokenizer[j+1], "R5,") == 0){
+                add |= (0b101 << 9);
+
+            }
+            else if(strcmp(tokenizer[j+1], "R6,") == 0){
+                add |= (0b110 << 9);
+
+            }
+            else if(strcmp(tokenizer[j+1], "R7,") == 0){
+                add |= (0b111 << 9);
+
+            }
+
+
+            if(strcmp(tokenizer[j + 2], "R0,") == 0){
+                add |= (0b000 << 6);
+            }
+            else if(strcmp(tokenizer[j+2], "R1,") == 0){
+                add |= (0b001 << 6);
+
+            }
+            else if(strcmp(tokenizer[j+2], "R2,") == 0){
+                add |= (0b010 << 6);
+
+            }
+            else if(strcmp(tokenizer[j+2], "R3,") == 0){
+                add |= (0b011 << 6);
+
+            }
+            else if(strcmp(tokenizer[j+2], "R4,") == 0){
+                add |= (0b100 << 6);
+
+            }
+            else if(strcmp(tokenizer[j+2], "R5,") == 0){
+                add |= (0b101 << 6);
+            }
+            else if(strcmp(tokenizer[j+2], "R6,") == 0){
+                add |= (0b110 << 6);
+            }
+            else if(strcmp(tokenizer[j+2], "R7,") == 0){
+                add |= (0b111 << 6);
+            }
+
+            if(strcmp(tokenizer[j + 3], "R0") == 0){
+                add |= (0b000 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "R1") == 0){
+                add |= (0b001 << 0);
+
+            }
+            else if(strcmp(tokenizer[j+3], "R2") == 0){
+                add |= (0b010 << 0);
+
+            }
+            else if(strcmp(tokenizer[j+3], "R3") == 0){
+                sr2 = R_R3;
+            }
+            else if(strcmp(tokenizer[j+3], "R4") == 0){
+                sr2 = R_R4;
+            }
+            else if(strcmp(tokenizer[j+3], "R5") == 0){
+                sr2 = R_R5;
+            }
+            else if(strcmp(tokenizer[j+3], "R6") == 0){
+                sr2 = R_R6;
+            }
+            else if(strcmp(tokenizer[j+3], "R7") == 0){
+                sr2 = R_R7;
+            }
+           
+
+            
+            //printf("%d\n", instr);
+            add = (add << 8) | (add >> 8);
+            fwrite(&add, sizeof(uint16_t), 1, f2);
         }
         else if(strcmp(tokenizer[j], "PUTS") == 0){
             uint16_t PUTS = 0xF022;
@@ -154,10 +274,10 @@ int end;
             
             HALT = 0xF025;
             HALT = (HALT << 8) | (HALT >> 8);
-            fwrite(&HALT, sizeof(uint16_t), 1, f2);
+           fwrite(&HALT, sizeof(uint16_t), 1, f2);
             
 
-            fwrite(&bin, 2, str_size+1, f2);
+            
 
             
 
@@ -168,7 +288,7 @@ int end;
     }
     
     
-
+    //fwrite(&bin, 2, str_size + 1, f2);
 
     
 
