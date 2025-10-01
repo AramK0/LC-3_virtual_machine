@@ -16,7 +16,6 @@
 int main(){
 
     char **tokenizer = malloc(sizeof(char *) * TOKEN_SIZE);
-    char **string = malloc(TOKEN_SIZE * sizeof(char *));
     char *token;
     char buffer[1024];
     int i = 0;
@@ -30,7 +29,7 @@ int index = 0;
 char *start;
 int begin;
 int end;
-    FILE *file = fopen("try.s", "rb");
+    FILE *file = fopen("test.s", "r");
     FILE *f2 = fopen("yes.obj", "wb");
 
     size_t read = fread(buffer, 1, sizeof(buffer) - 1, file);
@@ -53,32 +52,42 @@ int end;
             break;
         }
      }
+ 
+
 
      
      int f = 0, e = 0;
      int str_size = end - begin;
      char str3[str_size];
 
-    /* for(buffer[begin]; begin == 34; begin++){
-        printf(" %c \n", buffer[begin]);
-     } */
+     printf("%d\n", str_size);
+     
 
+ 
+     // get the quoted str into buffer then swap the bits
      for(buffer[begin]; begin <= end; begin++){
         str3[f++] = buffer[begin];
-        str3[e++] = (str3[e++] << 8) | (str3[e++] >> 8);
+        //str3[e++] = (str3[e++] << 8) | (str3[e++] >> 8); This is undefined behavouir dont modify a variable more than once in same expression
 
      }
 
      str3[f] = '\0';
+          
    
     
     token = strtok(buffer, ",\t\n");
     for(int e = 0; token; e++){
         tokenizer[i++] = token;
         token = strtok(NULL, " \n");
-        
+        if(!tokenizer){
+            fprintf(stderr, "pointer failed at tokenize block\n");
+            exit(EXIT_FAILURE);
+        }
         
     }
+
+    tokenizer[i] = NULL;
+  
    
 
     uint16_t bin[str_size];
@@ -86,6 +95,7 @@ int end;
 
 
     for(int g = 0; g <= str_size; g++){
+
         bin[g] = str3[g];
         bin[g] = (bin[g] << 8) | (bin[g] >> 8);
 
@@ -102,7 +112,6 @@ int end;
  
     uint16_t instr;
 
-    tokenizer[i] = NULL;
     for(int j = 0; j < i; j++){
         if(strcmp(tokenizer[j], ".ORIG x3000") == 0){
         orig = 0x3000;
@@ -113,8 +122,6 @@ int end;
         else if(strcmp(tokenizer[j], "LEA") == 0){
             uint16_t LOAD_E = 0xE002;
             //uint16_t pc_offset = malloc(sizeof(uint16_t));
-            
-
             
             LOAD_E = (LOAD_E << 8) | (LOAD_E >> 8);
             fwrite(&LOAD_E, sizeof(uint16_t), 1, f2);
@@ -530,7 +537,11 @@ int end;
             and = (and << 8) | (and >> 8);
             fwrite(&and, sizeof(uint16_t), 1, f2);
         }
+      
+
+
         else if(strcmp(tokenizer[j], "PUTS") == 0){
+
             uint16_t PUTS = 0xF022;
             PUTS = (PUTS << 8) | (PUTS >> 8);
             fwrite(&PUTS, sizeof(uint16_t), 1, f2);
@@ -541,6 +552,8 @@ int end;
             HALT = 0xF025;
             HALT = (HALT << 8) | (HALT >> 8);
            fwrite(&HALT, sizeof(uint16_t), 1, f2);
+           fwrite(&bin, 2, str_size + 1, f2);
+
             
 
             
@@ -553,8 +566,7 @@ int end;
         
     }
     
-    
-    //fwrite(&bin, 2, str_size + 1, f2);
+  
 
     
 
