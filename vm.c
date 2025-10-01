@@ -244,7 +244,7 @@ int run_vm(){
     reg[R_PC] = PC_START;
 
     while(1){
-        printf("LC-3->Please choose one of the following arguements: 1-Give an assembly file 2-quit: ");
+        printf("LC-3->Please choose one of the following arguements: 1-Give an assembly file to run 2-quit: ");
         restore_input_buffering();
         scanf("%d", &choice);
         getchar();
@@ -517,6 +517,9 @@ int run_vm(){
 
             }
 
+                }
+                else{
+                    printf("Invalid input\n");
                 }
             }
         
