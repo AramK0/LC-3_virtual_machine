@@ -307,6 +307,34 @@ int end;
                 add |= (1 << 5);
                 add |= (0b01001 << 0);
             }
+            else if(strcmp(tokenizer[j+3], "#9") == 0){
+                add |= (1 << 5);
+                add |= (0b01001 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#10") == 0){
+                add |= (1 << 5);
+                add |= (0b01010 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#11") == 0){
+                add |= (1 << 5);
+                add |= (0b01011 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#12") == 0){
+                add |= (1 << 5);
+                add |= (0b01100 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#13") == 0){
+                add |= (1 << 5);
+                add |= (0b01101 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#14") == 0){
+                add |= (1 << 5);
+                add |= (0b01110 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#15") == 0){
+                add |= (1 << 5);
+                add |= (0b01111 << 0);
+            }
            
             
             //printf("%d\n", instr);
@@ -470,6 +498,30 @@ int end;
             else if(strcmp(tokenizer[j+3], "#9") == 0){
                 and |= (1 << 5);
                 and |= (0b01001 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#10") == 0){
+                and |= (1 << 5);
+                and |= (0b01010 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#11") == 0){
+                and |= (1 << 5);
+                and |= (0b01011 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#12") == 0){
+                and |= (1 << 5);
+                and |= (0b01100 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#13") == 0){
+                and |= (1 << 5);
+                and |= (0b01101 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#14") == 0){
+                and |= (1 << 5);
+                and |= (0b01110 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#15") == 0){
+                and |= (1 << 5);
+                and |= (0b01111 << 0);
             }
             
 
