@@ -25,10 +25,10 @@ int main(){
     uint16_t r0;
     uint16_t r1;
 
-int index = 0;
-char *start;
-int begin;
-int end;
+    int index = 0;
+    char *start;
+    int begin;
+    int end;
     FILE *file = fopen("test.s", "r");
     FILE *f2 = fopen("yes.obj", "wb");
 
@@ -101,13 +101,7 @@ int end;
 
     }
 
-       
- 
-/*for(int e = 0; e < i; e++){
-    printf("%s\n", tokenizer[e]);
-}*/
-
-            int cnt = 0;
+    int cnt = 0;
 
  
     uint16_t instr;
