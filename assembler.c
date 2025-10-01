@@ -13,20 +13,6 @@
 
 #define TOKEN_SIZE 1024
 
-enum{
-    R_R0 = 0,
-    R_R1,
-    R_R2,
-    R_R3,
-    R_R4,
-    R_R5,
-    R_R6,
-    R_R7,
-    R_PC, /* program counter */
-    R_COND,
-    R_COUNT
-};
-
 int main(){
 
     char **tokenizer = malloc(sizeof(char *) * TOKEN_SIZE);
@@ -160,93 +146,166 @@ int end;
 
             }
             else if(strcmp(tokenizer[j+1], "R1,") == 0){
+                add &= ~(0b111 << 9);
                 mask = (1 << 3) - 1;
                 mask = mask << 9;
                 add |= (0b001 << 9);
             }
             else if(strcmp(tokenizer[j+1], "R2,") == 0){
+                add &= ~(0b111 << 9);
                 add |= (0b010 << 9);
             }
             else if(strcmp(tokenizer[j+1], "R3,") == 0){
+                add &= ~(0b111 << 9);
                 add |= (0b011 << 9);
             }
             else if(strcmp(tokenizer[j+1], "R4,") == 0){
-                add |= (0b0100 << 9);
+                add &= ~(0b111 << 9);
+                add |= (0b100 << 9);
 
             }
             else if(strcmp(tokenizer[j+1], "R5,") == 0){
+                add &= ~(0b111 << 9);
                 add |= (0b101 << 9);
 
             }
             else if(strcmp(tokenizer[j+1], "R6,") == 0){
+                add &= ~(0b111 << 9);
                 add |= (0b110 << 9);
 
             }
             else if(strcmp(tokenizer[j+1], "R7,") == 0){
+                add &= ~(0b111 << 9);
                 add |= (0b111 << 9);
 
             }
 
 
             if(strcmp(tokenizer[j + 2], "R0,") == 0){
+                add &= ~(0b111 << 6);
                 add |= (0b000 << 6);
             }
             else if(strcmp(tokenizer[j+2], "R1,") == 0){
+                add &= ~(0b111 << 6);
                 add |= (0b001 << 6);
 
             }
             else if(strcmp(tokenizer[j+2], "R2,") == 0){
+                add &= ~(0b111 << 6);
                 add |= (0b010 << 6);
 
             }
             else if(strcmp(tokenizer[j+2], "R3,") == 0){
+                add &= ~(0b111 << 6);
                 add |= (0b011 << 6);
 
             }
             else if(strcmp(tokenizer[j+2], "R4,") == 0){
+                add &= ~(0b111 << 6);
                 add |= (0b100 << 6);
 
             }
             else if(strcmp(tokenizer[j+2], "R5,") == 0){
+                add &= ~(0b111 << 6);
                 add |= (0b101 << 6);
             }
             else if(strcmp(tokenizer[j+2], "R6,") == 0){
+                add &= ~(0b111 << 6);
                 add |= (0b110 << 6);
             }
             else if(strcmp(tokenizer[j+2], "R7,") == 0){
+                add &= ~(0b111 << 6);
                 add |= (0b111 << 6);
             }
 
             if(strcmp(tokenizer[j + 3], "R0") == 0){
+                add &= ~(0b111 << 0);
                 add |= (0b000 << 0);
             }
             else if(strcmp(tokenizer[j+3], "R1") == 0){
+                add &= ~(0b111 << 0);
                 add |= (0b001 << 0);
 
             }
             else if(strcmp(tokenizer[j+3], "R2") == 0){
+                add &= ~(0b111 << 0);
                 add |= (0b010 << 0);
 
             }
             else if(strcmp(tokenizer[j+3], "R3") == 0){
+                add &= ~(0b111 << 0);
                 add |= (0b011 << 0);
 
             }
             else if(strcmp(tokenizer[j+3], "R4") == 0){
+                add &= ~(0b111 << 0);
                 add |= (0b100 << 0);
 
             }
             else if(strcmp(tokenizer[j+3], "R5") == 0){
+                add &= ~(0b111 << 0);
                 add |= (0b101 << 0);
 
             }
             else if(strcmp(tokenizer[j+3], "R6") == 0){
-                   add |= (0b110 << 0);
+                add &= ~(0b111 << 0);
+                add |= (0b110 << 0);
 
             }
             else if(strcmp(tokenizer[j+3], "R7") == 0){
+                add &= ~(0b111 << 0);
                 add |= (0b111 << 0);
 
+            }
+            else if(strcmp(tokenizer[j+3], "#0") == 0){
+                add &= ~(0b11111 << 0);
+                add |= (1 << 5);
+                add |= (0b00000 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#1") == 0){
+                add &= ~(0b11111 << 0);
+                add |= (1 << 5);
+                add |= (0b00001 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#2") == 0){
+                add &= ~(0b11111 << 0);
+                add |= (1 << 5);
+                add |= (0b00010 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#3") == 0){
+                add &= ~(0b11111 << 0);
+                add |= (1 << 5);
+                add |= (0b00011 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#4") == 0){
+                add &= ~(0b11111 << 0);
+                add |= (1 << 5);
+                add |= (0b00100 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#5") == 0){
+                add &= ~(0b11111 << 0);
+                add |= (1 << 5);
+                add |= (0b00101 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#6") == 0){
+                add &= ~(0b11111 << 0);
+                add |= (1 << 5);
+                add |= (0b00110 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#7") == 0){
+                add &= ~(0b11111 << 0);
+                add |= (1 << 5);
+                add |= (0b00111 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#8") == 0){
+                add &= ~(0b11111 << 0);
+                add |= (1 << 5);
+                add |= (0b01000 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#9") == 0){
+                add &= ~(0b11111 << 0);
+                add |= (1 << 5);
+                add |= (0b01001 << 0);
             }
            
             
@@ -368,6 +427,53 @@ int end;
                 and |= (0b111 << 0);
 
             }
+            else if(strcmp(tokenizer[j+3], "#0") == 0){
+                and &= ~(0b11111 << 0);
+                and |= (1 << 5);
+                and |= (0b00000 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#1") == 0){
+                and &= ~(0b11111 << 0);
+                and |= (1 << 5);
+                and |= (0b00001 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#2") == 0){
+                and &= ~(0b11111 << 0);
+                and |= (1 << 5);
+                and |= (0b00010 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#3") == 0){
+                and &= ~(0b11111 << 0);
+                and |= (1 << 5);
+                and |= (0b00011 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#4") == 0){
+                and |= (1 << 5);
+                and |= (0b00100 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#5") == 0){
+                and |= (1 << 5);
+                and |= (0b00101 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#6") == 0){
+                and |= (1 << 5);
+                and |= (0b00110 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#7") == 0){
+                and |= (1 << 5);
+                and |= (0b00111 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#8") == 0){
+                and |= (1 << 5);
+                and |= (0b01000 << 0);
+            }
+            else if(strcmp(tokenizer[j+3], "#9") == 0){
+                and |= (1 << 5);
+                and |= (0b01001 << 0);
+            }
+            
+
+
             //printf("%d\n", instr);
             and = (and << 8) | (and >> 8);
             fwrite(&and, sizeof(uint16_t), 1, f2);
