@@ -25,12 +25,17 @@ int main(){
     uint16_t r0;
     uint16_t r1;
 
+    char path[128];
+    printf("Please enter the path to the assembly file you want to assemble: ");
+    fgets(path, sizeof(path), stdin);
+    path[strcspn(path, "\n")] = '\0';
+
     int index = 0;
     char *start;
     int begin;
     int end;
-    FILE *file = fopen("test.s", "r");
-    FILE *f2 = fopen("yes.obj", "wb");
+    FILE *file = fopen(path, "r");
+    FILE *f2 = fopen("assembled_file.obj", "wb");
 
     size_t read = fread(buffer, 1, sizeof(buffer) - 1, file);
     buffer[read] = '\0';
@@ -61,7 +66,6 @@ int main(){
      char str3[str_size];
 
      printf("%d\n", str_size);
-     
 
  
      // get the quoted str into buffer then swap the bits
