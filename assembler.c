@@ -35,7 +35,15 @@ int main(){
     int begin;
     int end;
     FILE *file = fopen(path, "r");
+    if(!file){
+        fprintf(stderr, "Invalid filepath or does not exist\n");
+        exit(EXIT_FAILURE);
+    }
     FILE *f2 = fopen("assembled_file.obj", "wb");
+    if(!f2){
+        fprintf(stderr, "Couldnt create or write to assembled_file.obl\n");
+        exit(EXIT_FAILURE);
+    }
 
     size_t read = fread(buffer, 1, sizeof(buffer) - 1, file);
     buffer[read] = '\0';
@@ -65,7 +73,6 @@ int main(){
      int str_size = end - begin;
      char str3[str_size];
 
-     printf("%d\n", str_size);
 
  
      // get the quoted str into buffer then swap the bits
@@ -570,7 +577,7 @@ int main(){
 
    
 
-
+    printf("Successfully assembled '%s'\n", path);
 
 
     fclose(file);
