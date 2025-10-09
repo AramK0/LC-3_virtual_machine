@@ -1,12 +1,39 @@
-# LC-3 Virtual Machine in C
+# LC-3 Virtual Machine
 
-a simple virtual machine with the LC-3 architecure made with c and also an assembler to turn LC-3 assembly instructions into machine code
+A simple virtual machine implementing the LC-3 architecture in C, with an assembler for converting LC-3 assembly to machine code.
 
-# Running
+## Building
 
-First clone the repo
-then get a simple lc-3 assembly instruction file like the one in assembly_instruction/hello.s
+Compile the assembler:
+```bash
+gcc assembler.c -o assembler
+```
 
-run 'gcc assembler.c -o assembler' and ./assembler --enter the filepath to the assembly file
-run 'gcc vm.c -o virtual_machine' and ./virtual_machine --follow the cli and enter assembled_file.obj and you should see the output that it works well
+Compile the virtual machine:
+```bash
+gcc vm.c -o virtual_machine
+```
 
+## Usage
+
+Assemble your program:
+```bash
+./assembler
+```
+Enter the path to your assembly file when prompted (e.g., `assembly_instruction/hello.s`).
+
+Run the assembled program:
+```bash
+./virtual_machine
+```
+Enter `assembled_file.obj` when prompted.
+
+## Example
+
+```bash
+./assembler
+# Enter: assembly_instruction/hello.s
+
+./virtual_machine
+# Enter: assembled_file.obj
+```
