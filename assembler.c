@@ -14,7 +14,7 @@
 #define TOKEN_SIZE 1024
 
 int parse_register(char *token){
-    if(token[0] == 'R' && token[1] >= '0' && token[1] < '7'){
+    if(token && token[0] == 'R' && token[1] >= '0' && token[1] < '7'){
         return token[0] - '0';
     }
     return -1;
@@ -63,7 +63,8 @@ int main(){
     buffer[read] = '\0';
    
     
-
+    begin = -1;
+    end = -1;
      for(index = 0; index <= read ; index++){
         if(buffer[index] == 34){
             begin = index;
@@ -72,20 +73,30 @@ int main(){
         }
      }
      index = index + 1;
-     for(index; index <= read ; index++){
-        if(buffer[index] == 34){
-            end = index;
-            end--;
-            break;
+     if(begin != -1){
+        for(index; index <= read ; index++){
+            if(buffer[index] == 34){
+                end = index;
+                end--;
+                break;
+            }
         }
-     }
+    }
  
 
 
      
-     int f = 0, e = 0;
-     int str_size = end - begin;
+      int f = 0, e = 0;
+     int str_size = 0;
      char str3[str_size];
+     if(begin != -1 && end != -1 && end > begin){
+        
+        for(int k = begin; k <= end; k++){
+            str3[f++] = buffer[k];
+        }
+        str3[f] = '\0';
+        str_size = f;
+     }
 
 
  
