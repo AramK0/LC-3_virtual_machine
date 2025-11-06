@@ -63,8 +63,8 @@ int main(){
     buffer[read] = '\0';
    
     
-    begin = -1;
-    end = -1;
+    begin = 0;
+    end = 0;
      for(index = 0; index <= read ; index++){
         if(buffer[index] == 34){
             begin = index;
@@ -82,11 +82,15 @@ int main(){
             }
         }
     }
+    else{
+        fprintf(stderr, "ERR");
+        exit(EXIT_FAILURE);
+    }
  
 
 
      
-      int f = 0, e = 0;
+     int f = 0, e = 0;
      int str_size = 0;
      char str3[str_size];
      if(begin != -1 && end != -1 && end > begin){
