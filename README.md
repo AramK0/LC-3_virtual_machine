@@ -1,6 +1,7 @@
 # LC-3 Virtual Machine
 
 A simple virtual machine implementing the LC-3 architecture in C, with an assembler for converting LC-3 assembly to machine code.
+Helps in understanding low level programming and how instructions are decoded
 
 ## Building
 
